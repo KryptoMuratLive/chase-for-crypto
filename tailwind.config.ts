@@ -52,16 +52,28 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				}
+				// Custom crypto gaming colors
+				bitcoin: 'hsl(var(--bitcoin-gold))',
+				cyber: 'hsl(var(--electric-blue))',
+				hunter: 'hsl(var(--hunter-red))',
+				purple: 'hsl(var(--cyber-purple))',
+				'dark-surface': 'hsl(var(--dark-surface))',
+				'darker-surface': 'hsl(var(--darker-surface))'
+			},
+			backgroundImage: {
+				'gradient-bitcoin': 'var(--gradient-bitcoin)',
+				'gradient-cyber': 'var(--gradient-cyber)',
+				'gradient-hunter': 'var(--gradient-hunter)',
+				'gradient-dark': 'var(--gradient-dark)'
+			},
+			boxShadow: {
+				'glow-bitcoin': 'var(--glow-bitcoin)',
+				'glow-cyber': 'var(--glow-cyber)',
+				'glow-hunter': 'var(--glow-hunter)'
+			},
+			transitionTimingFunction: {
+				'smooth': 'var(--transition-smooth)',
+				'bounce': 'var(--transition-bounce)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
