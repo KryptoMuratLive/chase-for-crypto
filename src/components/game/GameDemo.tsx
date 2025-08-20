@@ -17,6 +17,7 @@ const DEMO_CARDS: GameCard[] = [
     name: "Murats Freund",
     type: "character",
     team: "murat",
+    rarity: "common",
     stats: { skill: 3, intelligence: 5, strength: 2 },
     ability: "Ablenkung schaffen - Blockiert die nächste gegnerische Aktionskarte.",
     description: "Ein treuer Freund, der durch geschickte Ablenkung hilft."
@@ -26,6 +27,7 @@ const DEMO_CARDS: GameCard[] = [
     name: "Hacken",
     type: "action",
     team: "murat",
+    rarity: "rare",
     ability: "Deaktiviert elektronische Geräte des Gegners für einen Zug.",
     description: "Technische Sabotage, die den Gegner verwirrt."
   },
@@ -34,27 +36,88 @@ const DEMO_CARDS: GameCard[] = [
     name: "Crowdsourcing-Hinweis",
     type: "community",
     team: "murat",
+    rarity: "rare",
     ability: "Öffnet einen geheimen Pfad auf der Karte.",
     description: "Die Community hilft mit einem versteckten Weg."
   },
-  // Team Jäger
+  // Team Jäger - Charakter-NFT-Karten
   {
     id: "hunter-main",
     name: "Der Jäger",
     type: "character",
     team: "jager",
+    rarity: "legendary",
     stats: { skill: 8, intelligence: 10, strength: 7 },
-    ability: "Komplette Überwachung - Scannt die gesamte Karte und deckt Murats Position auf.",
-    description: "Der Meister der Überwachung mit modernster Technologie."
+    ability: "Komplette Überwachung - Deckt die Position von Murat auf der gesamten Karte für 3 Runden auf.",
+    description: "Der Hauptantagonist der Serie, der über beispiellose Ressourcen und taktische Fähigkeiten verfügt. Er ist das größte Hindernis für Murat."
+  },
+  {
+    id: "drone-pilot",
+    name: "Der Drohnenpilot",
+    type: "character",
+    team: "jager",
+    rarity: "rare",
+    stats: { skill: 4, intelligence: 9, strength: 3 },
+    ability: "Luftüberwachung - Deckt die Position aller Team Murat-Karten im Umkreis von zwei Zonen auf.",
+    description: "Ein Spezialist für die Luftüberwachung. Seine Drohnen ermöglichen es, versteckte Wege zu entdecken und Murats Fortschritt zu verfolgen."
+  },
+  {
+    id: "saboteur",
+    name: "Der Saboteur",
+    type: "character",
+    team: "jager",
+    rarity: "common",
+    stats: { skill: 8, intelligence: 6, strength: 7 },
+    ability: "Sprengfalle - Platziert eine Bombe auf dem Weg, die Murat dazu zwingt, 2 Runden lang zu pausieren.",
+    description: "Ein gefährlicher Experte für Sprengstoffe und Fallen, der mit seinen Fallen Murats Route unpassierbar machen kann."
   },
   {
     id: "biker-gang",
     name: "Rockerbande",
     type: "character",
     team: "jager",
+    rarity: "common",
     stats: { skill: 6, intelligence: 4, strength: 9 },
-    ability: "Straßenblockade - Blockiert einen zufälligen Weg auf der Karte.",
-    description: "Rohe Gewalt und Motorräder schaffen Hindernisse."
+    ability: "Straßenblockade - Blockiert eine bestimmte Zone auf der Karte für zwei Runden. Murat muss diese Zone umgehen, was seinen Fortschritt verlangsamt.",
+    description: "Eine Gruppe rauer Biker, die für den Jäger arbeiten. Ihre rohe Kraft macht sie zu einer effektiven physischen Barriere."
+  },
+  {
+    id: "passerby",
+    name: "Der Passant",
+    type: "character",
+    team: "jager",
+    rarity: "common",
+    stats: { skill: 4, intelligence: 3, strength: 3 },
+    ability: "Hinweis geben - Kann die Position von Murat für eine Runde aufdecken, wenn er sich in der Nähe befindet.",
+    description: "Ein unwissender Bürger, der Murat zufällig sieht und seinen Standort an den Jäger weitergibt."
+  },
+  // Team Jäger - Aktionskarten (Keine NFTs)
+  {
+    id: "set-trap",
+    name: "Falle Stellen",
+    type: "action",
+    team: "jager",
+    rarity: "common",
+    ability: "Platziert eine einfache Falle auf der Karte, die Murats Geschwindigkeit für einen Zug reduziert.",
+    description: "Eine einfache, aber nützliche Karte, um den Fortschritt von Murat zu behindern."
+  },
+  {
+    id: "call-police",
+    name: "Polizei rufen",
+    type: "action",
+    team: "jager",
+    rarity: "common",
+    ability: "Ruft die Polizei, die entweder Murat oder den Jäger für einen Zug blockiert.",
+    description: "Kann strategisch eingesetzt werden, um entweder Murat aufzuhalten oder den Jäger zu schützen."
+  },
+  {
+    id: "bitcoin-transaction",
+    name: "Bitcoin-Transaktion",
+    type: "action",
+    team: "jager",
+    rarity: "rare",
+    ability: "Kann eine Spur legen, indem sie die Transaktion des Wallets auf der Blockchain sichtbar macht.",
+    description: "Erhöht die Sichtbarkeit von Murats Figur auf der Karte, damit das Team Jäger ihn besser verfolgen kann."
   }
 ];
 
@@ -114,6 +177,7 @@ export const GameDemo = () => {
 
   const applyCardEffect = async (card: GameCard) => {
     switch (card.id) {
+      // Team Murat
       case "murat-friend":
         // Block next enemy action (visual effect)
         break;
@@ -125,16 +189,58 @@ export const GameDemo = () => {
         setGameEffects(prev => ({ ...prev, secretPath: true }));
         setMuratPosition({ x: 80, y: 40 }); // Move via secret path
         break;
+      
+      // Team Jäger - Charakter-NFT-Karten
       case "hunter-main":
+        // Komplette Überwachung - 3 Runden Scan-Effekt
+        setGameEffects(prev => ({ ...prev, scanEffect: true }));
+        setTimeout(() => setGameEffects(prev => ({ ...prev, scanEffect: false })), 6000);
+        break;
+      case "drone-pilot":
+        // Luftüberwachung - Kurzzeitiger Scan-Effekt
         setGameEffects(prev => ({ ...prev, scanEffect: true }));
         setTimeout(() => setGameEffects(prev => ({ ...prev, scanEffect: false })), 2000);
         break;
-      case "biker-gang":
-        const newBlockade = { x: 50 + Math.random() * 20, y: 30 + Math.random() * 20 };
+      case "saboteur":
+        // Sprengfalle - stoppt Murat für 2 Runden (visuell durch Explosion)
+        const explosionSite = { x: muratPosition.x + 10, y: muratPosition.y };
         setGameEffects(prev => ({ 
           ...prev, 
-          blockades: [...prev.blockades, newBlockade] 
+          blockades: [...prev.blockades, explosionSite] 
         }));
+        break;
+      case "biker-gang":
+        // Straßenblockade - blockiert Zone für zwei Runden
+        const roadBlock = { x: 50 + Math.random() * 20, y: 30 + Math.random() * 20 };
+        setGameEffects(prev => ({ 
+          ...prev, 
+          blockades: [...prev.blockades, roadBlock] 
+        }));
+        break;
+      case "passerby":
+        // Hinweis geben - kurze Aufdeckung von Murats Position
+        setGameEffects(prev => ({ ...prev, scanEffect: true }));
+        setTimeout(() => setGameEffects(prev => ({ ...prev, scanEffect: false })), 1500);
+        break;
+      
+      // Team Jäger - Aktionskarten
+      case "set-trap":
+        // Falle stellen - reduziert Murats Geschwindigkeit
+        const trapLocation = { x: muratPosition.x + 15, y: muratPosition.y + 5 };
+        setGameEffects(prev => ({ 
+          ...prev, 
+          blockades: [...prev.blockades, trapLocation] 
+        }));
+        break;
+      case "call-police":
+        // Polizei rufen - temporäre Verwirrung beider Seiten
+        setGameEffects(prev => ({ ...prev, confusion: true }));
+        setTimeout(() => setGameEffects(prev => ({ ...prev, confusion: false })), 2500);
+        break;
+      case "bitcoin-transaction":
+        // Bitcoin-Transaktion - macht Murat sichtbarer
+        setGameEffects(prev => ({ ...prev, scanEffect: true }));
+        setTimeout(() => setGameEffects(prev => ({ ...prev, scanEffect: false })), 4000);
         break;
     }
   };

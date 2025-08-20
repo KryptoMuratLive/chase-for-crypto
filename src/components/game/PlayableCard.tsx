@@ -8,6 +8,7 @@ export interface GameCard {
   name: string;
   type: "character" | "action" | "community";
   team: "murat" | "jager";
+  rarity?: "common" | "rare" | "legendary";
   stats?: {
     skill: number;
     intelligence: number;
