@@ -11,7 +11,47 @@ type GamePhase = "setup" | "round1" | "round2" | "round3" | "finished";
 type ActivePlayer = "murat" | "jager" | "both";
 
 const DEMO_CARDS: GameCard[] = [
-  // Team Murat
+  // Team Murat - Charakter-NFT-Karten
+  {
+    id: "murat-main",
+    name: "Murat",
+    type: "character",
+    team: "murat",
+    rarity: "legendary",
+    stats: { skill: 9, intelligence: 8, strength: 7 },
+    ability: "Täuschungsmanöver - Kann eine gegnerische Aktion neutralisieren und gewinnt einen Zug Vorsprung.",
+    description: "Der Held der Geschichte, der die Bitcoin sicher an sein Ziel bringen muss. Seine Beweglichkeit und Cleverness sind seine größten Stärken."
+  },
+  {
+    id: "hacker",
+    name: "Der Hacker",
+    type: "character",
+    team: "murat",
+    rarity: "rare",
+    stats: { skill: 5, intelligence: 10, strength: 2 },
+    ability: "Digitale Ablenkung - Blockiert die Ortungsfähigkeiten von Team Jäger für 3 Züge.",
+    description: "Ein Meister der digitalen Welt, der Überwachungssysteme und Ortungsversuche des Jägers sabotieren kann."
+  },
+  {
+    id: "informant",
+    name: "Der Informant",
+    type: "character",
+    team: "murat",
+    rarity: "common",
+    stats: { skill: 3, intelligence: 7, strength: 3 },
+    ability: "Versteckter Hinweis - Findet einen geheimen Pfad auf der Karte, der Murats Bewegung zum nächsten Checkpoint beschleunigt.",
+    description: "Ein Unterstützer aus der Community, der im Verborgenen agiert und wichtige Informationen überbringt."
+  },
+  {
+    id: "urban-climber",
+    name: "Städtischer Kletterer",
+    type: "character",
+    team: "murat",
+    rarity: "rare",
+    stats: { skill: 9, intelligence: 4, strength: 6 },
+    ability: "Parkour - Ignoriert eine Straßenblockade, die von Team Jäger platziert wurde.",
+    description: "Ein Athlet, der sich schnell durch urbane Landschaften bewegt und physische Hindernisse überwinden kann."
+  },
   {
     id: "murat-friend",
     name: "Murats Freund",
@@ -19,17 +59,27 @@ const DEMO_CARDS: GameCard[] = [
     team: "murat",
     rarity: "common",
     stats: { skill: 3, intelligence: 5, strength: 2 },
-    ability: "Ablenkung schaffen - Blockiert die nächste gegnerische Aktionskarte.",
-    description: "Ein treuer Freund, der durch geschickte Ablenkung hilft."
+    ability: "Ablenkung schaffen - Blockiert eine einzelne gegnerische Karte für einen Zug.",
+    description: "Eine loyale Unterstützung, die zwar nicht im Rampenlicht steht, aber im entscheidenden Moment helfen kann."
   },
+  // Team Murat - Aktionskarten (Keine NFTs)
   {
-    id: "hack-action",
-    name: "Hacken",
+    id: "hide",
+    name: "Verstecken",
     type: "action",
     team: "murat",
-    rarity: "rare",
-    ability: "Deaktiviert elektronische Geräte des Gegners für einen Zug.",
-    description: "Technische Sabotage, die den Gegner verwirrt."
+    rarity: "common",
+    ability: "Verhindert für eine Runde, dass Murat von Team Jäger aufgedeckt werden kann.",
+    description: "Eine wichtige Verteidigungskarte, die den Jäger in die Irre führt."
+  },
+  {
+    id: "call-police-murat",
+    name: "Polizei rufen",
+    type: "action",
+    team: "murat",
+    rarity: "common",
+    ability: "Ruft die Polizei, die entweder Murat oder den Jäger für einen Zug blockiert.",
+    description: "Kann strategisch eingesetzt werden, um entweder Murat zu schützen oder den Jäger aufzuhalten."
   },
   {
     id: "crowdsourcing",
@@ -37,9 +87,19 @@ const DEMO_CARDS: GameCard[] = [
     type: "community",
     team: "murat",
     rarity: "rare",
-    ability: "Öffnet einen geheimen Pfad auf der Karte.",
-    description: "Die Community hilft mit einem versteckten Weg."
+    ability: "Öffnet einen geheimen Pfad.",
+    description: "Eine Community-Karte, die durch eine Abstimmung ausgelöst wird und einen neuen, nicht sichtbaren Weg auf der Karte freischaltet."
   },
+  {
+    id: "live-donation",
+    name: "Live-Spender",
+    type: "community",
+    team: "murat",
+    rarity: "rare",
+    ability: "Schaltet eine besondere Fortbewegungsmethode frei (z.B. ein Taxi), die Murat eine weite Distanz schnell zurücklegen lässt.",
+    description: "Eine Community-Karte, die durch Spenden ausgelöst wird und den Spielern die Möglichkeit gibt, direkt in das Spiel einzugreifen."
+  },
+  
   // Team Jäger - Charakter-NFT-Karten
   {
     id: "hunter-main",
@@ -177,17 +237,53 @@ export const GameDemo = () => {
 
   const applyCardEffect = async (card: GameCard) => {
     switch (card.id) {
-      // Team Murat
-      case "murat-friend":
-        // Block next enemy action (visual effect)
-        break;
-      case "hack-action":
+      // Team Murat - Charakter-NFT-Karten
+      case "murat-main":
+        // Täuschungsmanöver - neutralisiert gegnerische Aktion und gewinnt Vorsprung
+        setMuratPosition(prev => ({ x: Math.min(prev.x + 25, 90), y: prev.y }));
         setGameEffects(prev => ({ ...prev, confusion: true }));
-        setTimeout(() => setGameEffects(prev => ({ ...prev, confusion: false })), 3000);
+        setTimeout(() => setGameEffects(prev => ({ ...prev, confusion: false })), 2000);
+        break;
+      case "hacker":
+        // Digitale Ablenkung - blockiert Ortungsfähigkeiten für 3 Züge
+        setGameEffects(prev => ({ ...prev, confusion: true }));
+        setTimeout(() => setGameEffects(prev => ({ ...prev, confusion: false })), 5000);
+        break;
+      case "informant":
+        // Versteckter Hinweis - findet geheimen Pfad
+        setGameEffects(prev => ({ ...prev, secretPath: true }));
+        setMuratPosition(prev => ({ x: Math.min(prev.x + 20, 85), y: prev.y - 10 }));
+        break;
+      case "urban-climber":
+        // Parkour - ignoriert Straßenblockaden
+        setGameEffects(prev => ({ ...prev, blockades: [] })); // Entfernt alle Blockaden
+        setMuratPosition(prev => ({ x: Math.min(prev.x + 15, 80), y: prev.y }));
+        break;
+      case "murat-friend":
+        // Ablenkung schaffen - blockiert gegnerische Karte für einen Zug
+        setGameEffects(prev => ({ ...prev, confusion: true }));
+        setTimeout(() => setGameEffects(prev => ({ ...prev, confusion: false })), 1500);
+        break;
+      
+      // Team Murat - Aktionskarten
+      case "hide":
+        // Verstecken - verhindert Aufdeckung für eine Runde
+        // Visueller Effekt: Murat wird temporär unsichtbar
+        break;
+      case "call-police-murat":
+        // Polizei rufen - blockiert beide Seiten temporär
+        setGameEffects(prev => ({ ...prev, confusion: true }));
+        setTimeout(() => setGameEffects(prev => ({ ...prev, confusion: false })), 2500);
         break;
       case "crowdsourcing":
+        // Crowdsourcing-Hinweis - öffnet geheimen Pfad
         setGameEffects(prev => ({ ...prev, secretPath: true }));
-        setMuratPosition({ x: 80, y: 40 }); // Move via secret path
+        setMuratPosition(prev => ({ x: Math.min(prev.x + 30, 85), y: 40 }));
+        break;
+      case "live-donation":
+        // Live-Spender - besondere Fortbewegung (Taxi)
+        setMuratPosition(prev => ({ x: Math.min(prev.x + 35, 90), y: prev.y }));
+        // Visueller Effekt für schnelle Bewegung
         break;
       
       // Team Jäger - Charakter-NFT-Karten
