@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GameMap } from "./GameMap";
 import { PlayerHand } from "./PlayerHand";
 import { PlayableCard, GameCard } from "./PlayableCard";
-import { Trophy, RotateCcw } from "lucide-react";
+import { Trophy, RotateCcw, ArrowLeft } from "lucide-react";
 
 type GamePhase = "setup" | "round1" | "round2" | "round3" | "finished";
 type ActivePlayer = "murat" | "jager" | "both";
@@ -181,7 +181,11 @@ const DEMO_CARDS: GameCard[] = [
   }
 ];
 
-export const GameDemo = () => {
+interface GameDemoProps {
+  onBackToHome?: () => void;
+}
+
+export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   const [gamePhase, setGamePhase] = useState<GamePhase>("setup");
   const [activePlayer, setActivePlayer] = useState<ActivePlayer>("murat");
   const [round, setRound] = useState(1);
@@ -376,7 +380,18 @@ export const GameDemo = () => {
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="text-center">
+        <div className="text-center relative">
+          {onBackToHome && (
+            <Button
+              onClick={onBackToHome}
+              variant="outline"
+              size="sm"
+              className="absolute left-0 top-0"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Zurück
+            </Button>
+          )}
           <h1 className="text-4xl font-bold mb-2 bg-gradient-bitcoin bg-clip-text text-transparent">
             Jagd auf den Bitcoin - Demo
           </h1>

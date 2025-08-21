@@ -1,6 +1,7 @@
 import { GameCard } from "@/components/GameCard";
 
 const sampleCards = [
+  // Team Murat - Charakter-NFT-Karten
   {
     name: "Murat",
     rarity: "legendary" as const,
@@ -8,14 +9,6 @@ const sampleCards = [
     stats: { skill: 9, intelligence: 8, strength: 7 },
     ability: "Täuschungsmanöver - Kann eine gegnerische Aktion neutralisieren und gewinnt einen Zug Vorsprung.",
     description: "Der Held der Geschichte, der die Bitcoin sicher an sein Ziel bringen muss. Seine Beweglichkeit und Cleverness sind seine größten Stärken."
-  },
-  {
-    name: "Der Jäger",
-    rarity: "legendary" as const,
-    team: "jager" as const,
-    stats: { skill: 8, intelligence: 10, strength: 7 },
-    ability: "Komplette Überwachung - Deckt die Position von Murat auf der gesamten Karte für 3 Runden auf.",
-    description: "Der Hauptantagonist der Serie, der über beispiellose Ressourcen und taktische Fähigkeiten verfügt. Er ist das größte Hindernis für Murat."
   },
   {
     name: "Der Hacker",
@@ -26,12 +19,12 @@ const sampleCards = [
     description: "Ein Meister der digitalen Welt, der Überwachungssysteme und Ortungsversuche des Jägers sabotieren kann."
   },
   {
-    name: "Der Drohnenpilot",
-    rarity: "rare" as const,
-    team: "jager" as const,
-    stats: { skill: 4, intelligence: 9, strength: 3 },
-    ability: "Luftüberwachung - Deckt die Position aller Team Murat-Karten im Umkreis von zwei Zonen auf.",
-    description: "Ein Spezialist für die Luftüberwachung. Seine Drohnen ermöglichen es, versteckte Wege zu entdecken und Murats Fortschritt zu verfolgen."
+    name: "Der Informant",
+    rarity: "common" as const,
+    team: "murat" as const,
+    stats: { skill: 3, intelligence: 7, strength: 3 },
+    ability: "Versteckter Hinweis - Findet einen geheimen Pfad auf der Karte, der Murats Bewegung zum nächsten Checkpoint beschleunigt.",
+    description: "Ein Unterstützer aus der Community, der im Verborgenen agiert und wichtige Informationen überbringt."
   },
   {
     name: "Städtischer Kletterer",
@@ -42,6 +35,31 @@ const sampleCards = [
     description: "Ein Athlet, der sich schnell durch urbane Landschaften bewegt und physische Hindernisse überwinden kann."
   },
   {
+    name: "Murats Freund",
+    rarity: "common" as const,
+    team: "murat" as const,
+    stats: { skill: 3, intelligence: 5, strength: 2 },
+    ability: "Ablenkung schaffen - Blockiert eine einzelne gegnerische Karte für einen Zug.",
+    description: "Eine loyale Unterstützung, die zwar nicht im Rampenlicht steht, aber im entscheidenden Moment helfen kann."
+  },
+  // Team Jäger - Charakter-NFT-Karten
+  {
+    name: "Der Jäger",
+    rarity: "legendary" as const,
+    team: "jager" as const,
+    stats: { skill: 8, intelligence: 10, strength: 7 },
+    ability: "Komplette Überwachung - Deckt die Position von Murat auf der gesamten Karte für 3 Runden auf.",
+    description: "Der Hauptantagonist der Serie, der über beispiellose Ressourcen und taktische Fähigkeiten verfügt. Er ist das größte Hindernis für Murat."
+  },
+  {
+    name: "Der Drohnenpilot",
+    rarity: "rare" as const,
+    team: "jager" as const,
+    stats: { skill: 4, intelligence: 9, strength: 3 },
+    ability: "Luftüberwachung - Deckt die Position aller Team Murat-Karten im Umkreis von zwei Zonen auf.",
+    description: "Ein Spezialist für die Luftüberwachung. Seine Drohnen ermöglichen es, versteckte Wege zu entdecken und Murats Fortschritt zu verfolgen."
+  },
+  {
     name: "Der Saboteur",
     rarity: "common" as const,
     team: "jager" as const,
@@ -50,20 +68,20 @@ const sampleCards = [
     description: "Ein gefährlicher Experte für Sprengstoffe und Fallen, der mit seinen Fallen Murats Route unpassierbar machen kann."
   },
   {
-    name: "Der Informant",
-    rarity: "common" as const,
-    team: "murat" as const,
-    stats: { skill: 3, intelligence: 7, strength: 3 },
-    ability: "Versteckter Hinweis - Findet einen geheimen Pfad auf der Karte, der Murats Bewegung zum nächsten Checkpoint beschleunigt.",
-    description: "Ein Unterstützer aus der Community, der im Verborgenen agiert und wichtige Informationen überbringt."
-  },
-  {
     name: "Rockerbande",
     rarity: "common" as const,
     team: "jager" as const,
     stats: { skill: 6, intelligence: 4, strength: 9 },
-    ability: "Straßenblockade - Blockiert eine bestimmte Zone auf der Karte für zwei Runden.",
+    ability: "Straßenblockade - Blockiert eine bestimmte Zone auf der Karte für zwei Runden. Murat muss diese Zone umgehen, was seinen Fortschritt verlangsamt.",
     description: "Eine Gruppe rauer Biker, die für den Jäger arbeiten. Ihre rohe Kraft macht sie zu einer effektiven physischen Barriere."
+  },
+  {
+    name: "Der Passant",
+    rarity: "common" as const,
+    team: "jager" as const,
+    stats: { skill: 4, intelligence: 3, strength: 3 },
+    ability: "Hinweis geben - Kann die Position von Murat für eine Runde aufdecken, wenn er sich in der Nähe befindet.",
+    description: "Ein unwissender Bürger, der Murat zufällig sieht und seinen Standort an den Jäger weitergibt."
   }
 ];
 

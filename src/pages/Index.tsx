@@ -10,7 +10,7 @@ const Index = () => {
   const [showDemo, setShowDemo] = useState(false);
 
   if (showDemo) {
-    return <GameDemo />;
+    return <GameDemo onBackToHome={() => setShowDemo(false)} />;
   }
 
   return (
