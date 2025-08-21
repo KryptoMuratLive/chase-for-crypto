@@ -1,7 +1,7 @@
 import { GameCard } from "@/components/GameCard";
 
-const sampleCards = [
-  // Team Murat - Charakter-NFT-Karten
+// Nur NFT-Charaktere (nicht die Aktionskarten)
+const teamMuratCards = [
   {
     name: "Murat",
     rarity: "legendary" as const,
@@ -41,8 +41,10 @@ const sampleCards = [
     stats: { skill: 3, intelligence: 5, strength: 2 },
     ability: "Ablenkung schaffen - Blockiert eine einzelne gegnerische Karte für einen Zug.",
     description: "Eine loyale Unterstützung, die zwar nicht im Rampenlicht steht, aber im entscheidenden Moment helfen kann."
-  },
-  // Team Jäger - Charakter-NFT-Karten
+  }
+];
+
+const teamJagerCards = [
   {
     name: "Der Jäger",
     rarity: "legendary" as const,
@@ -99,10 +101,38 @@ export const CardShowcase = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center">
-          {sampleCards.map((card, index) => (
-            <GameCard key={index} {...card} />
-          ))}
+        {/* Team Murat Section */}
+        <div className="mb-16">
+          <div className="text-center mb-8">
+            <h3 className="text-3xl font-bold mb-4 text-bitcoin">
+              Team Murat - Protagonisten & Unterstützer
+            </h3>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              {teamMuratCards.length} NFT-Charakterkarten zum Sammeln
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 justify-items-center">
+            {teamMuratCards.map((card, index) => (
+              <GameCard key={`murat-${index}`} {...card} />
+            ))}
+          </div>
+        </div>
+
+        {/* Team Jäger Section */}
+        <div className="mb-16">
+          <div className="text-center mb-8">
+            <h3 className="text-3xl font-bold mb-4 text-cyber">
+              Team Jäger - Verfolger & Spione
+            </h3>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              {teamJagerCards.length} NFT-Charakterkarten zum Sammeln
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 justify-items-center">
+            {teamJagerCards.map((card, index) => (
+              <GameCard key={`jager-${index}`} {...card} />
+            ))}
+          </div>
         </div>
 
         <div className="text-center mt-12">
