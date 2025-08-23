@@ -113,12 +113,12 @@ export const GameMap = ({ muratPosition, jagerPosition, effects }: GameMapProps)
         </div>
       )}
 
-      <div className="relative w-full h-96 bg-gradient-dark rounded-lg border border-bitcoin/20 overflow-hidden">
-        {/* Mapbox Container */}
-        <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+      <div className="relative w-full h-96 bg-dark-surface rounded-lg border border-bitcoin/20 overflow-hidden">
+        {/* Mapbox Container - Real Streets Map */}
+        <div ref={mapContainer} className="absolute inset-0 rounded-lg opacity-90" />
         
-        {/* Game Overlay Container */}
-        <div className="absolute inset-0 pointer-events-none">
+        {/* Game Overlay Container - Game Elements on Real Map */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/10">
           {/* Scan Effect */}
           {effects.scanEffect && (
             <motion.div
