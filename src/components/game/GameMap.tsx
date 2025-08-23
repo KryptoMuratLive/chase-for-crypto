@@ -113,12 +113,12 @@ export const GameMap = ({ muratPosition, jagerPosition, effects }: GameMapProps)
         </div>
       )}
 
-      <div className="relative w-full h-96 bg-dark-surface rounded-lg border border-bitcoin/20 overflow-hidden">
+      <div className="relative w-full h-96 bg-dark-surface rounded-lg border border-bitcoin/20 overflow-visible">
         {/* Mapbox Container - Real Streets Map */}
-        <div ref={mapContainer} className="absolute inset-0 rounded-lg opacity-90" />
+        <div ref={mapContainer} className="absolute inset-0 rounded-lg opacity-70" />
         
         {/* Game Overlay Container - Game Elements on Real Map */}
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-transparent to-black/10">
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/20 via-transparent to-black/30 z-10">
           {/* Scan Effect */}
           {effects.scanEffect && (
             <motion.div
@@ -133,7 +133,7 @@ export const GameMap = ({ muratPosition, jagerPosition, effects }: GameMapProps)
           {zones.map((zone) => (
             <div
               key={zone.id}
-              className={`absolute w-16 h-16 ${zone.color} rounded-full opacity-40 flex items-center justify-center backdrop-blur-sm`}
+              className={`absolute w-16 h-16 ${zone.color} rounded-full opacity-80 flex items-center justify-center backdrop-blur-sm border-2 border-white/30 shadow-lg z-20`}
               style={{ left: `${zone.x}%`, top: `${zone.y}%`, transform: "translate(-50%, -50%)" }}
             >
               <span className="text-xs font-bold text-white drop-shadow-lg">{zone.name}</span>
@@ -205,24 +205,24 @@ export const GameMap = ({ muratPosition, jagerPosition, effects }: GameMapProps)
 
           {/* Start Point */}
           <div
-            className="absolute z-5 flex items-center justify-center"
+            className="absolute z-30 flex items-center justify-center"
             style={{ left: "10%", top: "50%", transform: "translate(-50%, -50%)" }}
           >
-            <div className="w-8 h-8 bg-gradient-bitcoin rounded-full flex items-center justify-center shadow-glow-bitcoin border-2 border-white/20">
-              <MapPin className="w-4 h-4 text-white" />
+            <div className="w-10 h-10 bg-gradient-bitcoin rounded-full flex items-center justify-center shadow-glow-bitcoin border-3 border-white/40 shadow-xl">
+              <MapPin className="w-5 h-5 text-white" />
             </div>
-            <span className="absolute -bottom-8 text-xs text-bitcoin font-bold bg-black/50 px-2 py-1 rounded">START</span>
+            <span className="absolute -bottom-10 text-sm text-bitcoin font-bold bg-black/80 px-3 py-1 rounded border border-bitcoin/30">START</span>
           </div>
 
           {/* End Point */}
           <div
-            className="absolute z-5 flex items-center justify-center"
+            className="absolute z-30 flex items-center justify-center"
             style={{ left: "90%", top: "50%", transform: "translate(-50%, -50%)" }}
           >
-            <div className="w-8 h-8 bg-gradient-cyber rounded-full flex items-center justify-center shadow-glow-cyber border-2 border-white/20">
-              <Target className="w-4 h-4 text-white" />
+            <div className="w-10 h-10 bg-gradient-cyber rounded-full flex items-center justify-center shadow-glow-cyber border-3 border-white/40 shadow-xl">
+              <Target className="w-5 h-5 text-white" />
             </div>
-            <span className="absolute -bottom-8 text-xs text-cyber font-bold bg-black/50 px-2 py-1 rounded">ZIEL</span>
+            <span className="absolute -bottom-10 text-sm text-cyber font-bold bg-black/80 px-3 py-1 rounded border border-cyber/30">ZIEL</span>
           </div>
 
           {/* Murat Character */}
@@ -232,20 +232,20 @@ export const GameMap = ({ muratPosition, jagerPosition, effects }: GameMapProps)
               top: `${muratPosition.y}%` 
             }}
             transition={{ duration: 1, ease: "easeInOut" }}
-            className="absolute z-10 flex items-center justify-center"
+            className="absolute z-40 flex items-center justify-center"
             style={{ transform: "translate(-50%, -50%)" }}
           >
-            <div className={`w-10 h-10 bg-gradient-bitcoin rounded-full flex items-center justify-center shadow-glow-bitcoin border-2 border-white/30 ${effects.confusion ? 'animate-pulse' : ''}`}>
-              <Shield className="w-5 h-5 text-white" />
+            <div className={`w-12 h-12 bg-gradient-bitcoin rounded-full flex items-center justify-center shadow-glow-bitcoin border-3 border-white/50 shadow-2xl ${effects.confusion ? 'animate-pulse' : ''}`}>
+              <Shield className="w-6 h-6 text-white" />
             </div>
-            <span className="absolute -bottom-8 text-xs text-bitcoin font-bold bg-black/70 px-2 py-1 rounded">MURAT</span>
+            <span className="absolute -bottom-10 text-sm text-bitcoin font-bold bg-black/90 px-3 py-1 rounded border border-bitcoin/40">MURAT</span>
             {effects.confusion && (
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="absolute -top-2 -right-2"
+                className="absolute -top-3 -right-3"
               >
-                <Zap className="w-5 h-5 text-hunter drop-shadow-lg" />
+                <Zap className="w-6 h-6 text-hunter drop-shadow-lg" />
               </motion.div>
             )}
           </motion.div>
@@ -257,13 +257,13 @@ export const GameMap = ({ muratPosition, jagerPosition, effects }: GameMapProps)
               top: `${jagerPosition.y}%` 
             }}
             transition={{ duration: 1, ease: "easeInOut" }}
-            className="absolute z-10 flex items-center justify-center"
+            className="absolute z-40 flex items-center justify-center"
             style={{ transform: "translate(-50%, -50%)" }}
           >
-            <div className="w-10 h-10 bg-gradient-hunter rounded-full flex items-center justify-center shadow-glow-hunter border-2 border-white/30">
-              <Target className="w-5 h-5 text-white" />
+            <div className="w-12 h-12 bg-gradient-hunter rounded-full flex items-center justify-center shadow-glow-hunter border-3 border-white/50 shadow-2xl">
+              <Target className="w-6 h-6 text-white" />
             </div>
-            <span className="absolute -bottom-8 text-xs text-hunter font-bold bg-black/70 px-2 py-1 rounded">JÄGER</span>
+            <span className="absolute -bottom-10 text-sm text-hunter font-bold bg-black/90 px-3 py-1 rounded border border-hunter/40">JÄGER</span>
           </motion.div>
         </div>
         
