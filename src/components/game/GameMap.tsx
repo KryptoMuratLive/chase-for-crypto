@@ -1,5 +1,10 @@
 import { motion } from "framer-motion";
 import { MapPin, Target, Zap, Shield, AlertTriangle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface GameMapProps {
   muratPosition: { x: number; y: number };
@@ -32,157 +37,246 @@ const secretPaths = [
 ];
 
 export const GameMap = ({ muratPosition, jagerPosition, effects }: GameMapProps) => {
-  return (
-    <div className="relative w-full h-96 bg-gradient-dark rounded-lg border border-bitcoin/20 overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="w-full h-full bg-gradient-to-br from-bitcoin/20 via-transparent to-hunter/20" />
-      </div>
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [mapboxToken, setMapboxToken] = useState("");
+  const [mapInitialized, setMapInitialized] = useState(false);
 
-      {/* Scan Effect */}
-      {effects.scanEffect && (
-        <motion.div
-          initial={{ x: "-100%" }}
-          animate={{ x: "100%" }}
-          transition={{ duration: 2, ease: "linear" }}
-          className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-hunter/50 to-transparent z-20"
-        />
+  // Bielefeld old town coordinates
+  const bielefeldCenter: [number, number] = [8.5325, 52.0302];
+
+  useEffect(() => {
+    if (!mapContainer.current || !mapboxToken || mapInitialized) return;
+
+    try {
+      mapboxgl.accessToken = mapboxToken;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: bielefeldCenter,
+        zoom: 14,
+        pitch: 0,
+        bearing: 0
+      });
+
+      map.current.addControl(
+        new mapboxgl.NavigationControl({
+          visualizePitch: true,
+        }),
+        'top-right'
+      );
+
+      map.current.on('load', () => {
+        setMapInitialized(true);
+      });
+
+    } catch (error) {
+      console.error("Mapbox initialization error:", error);
+    }
+
+    return () => {
+      map.current?.remove();
+      setMapInitialized(false);
+    };
+  }, [mapboxToken, mapInitialized]);
+
+  const initializeMap = () => {
+    if (mapboxToken.trim()) {
+      setMapInitialized(false); // Reset to trigger useEffect
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Mapbox Token Input */}
+      {!mapInitialized && (
+        <div className="p-4 bg-dark-surface rounded-lg border border-bitcoin/20">
+          <h4 className="text-sm font-medium mb-2 text-bitcoin">Mapbox Token benötigt</h4>
+          <p className="text-xs text-muted-foreground mb-3">
+            Holen Sie sich Ihren kostenlosen Public Token auf{" "}
+            <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-cyber hover:underline">
+              mapbox.com
+            </a>
+          </p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="pk.eyJ1IjoieW91ci11c2VybmFtZSIsImEiOiJjbGp..."
+              value={mapboxToken}
+              onChange={(e) => setMapboxToken(e.target.value)}
+              className="flex-1 text-xs"
+            />
+            <Button onClick={initializeMap} variant="cyber" size="sm">
+              Karte laden
+            </Button>
+          </div>
+        </div>
       )}
 
-      {/* Zones */}
-      {zones.map((zone) => (
-        <div
-          key={zone.id}
-          className={`absolute w-16 h-16 ${zone.color} rounded-full opacity-30 flex items-center justify-center`}
-          style={{ left: `${zone.x}%`, top: `${zone.y}%`, transform: "translate(-50%, -50%)" }}
-        >
-          <span className="text-xs font-bold text-foreground">{zone.name}</span>
-        </div>
-      ))}
+      <div className="relative w-full h-96 bg-gradient-dark rounded-lg border border-bitcoin/20 overflow-hidden">
+        {/* Mapbox Container */}
+        <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+        
+        {/* Game Overlay Container */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Scan Effect */}
+          {effects.scanEffect && (
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ duration: 2, ease: "linear" }}
+              className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-hunter/50 to-transparent z-20"
+            />
+          )}
 
-      {/* Normal Paths */}
-      {paths.map((path) => (
-        <svg
-          key={path.id}
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{ zIndex: 1 }}
-        >
-          <line
-            x1={`${path.from.x}%`}
-            y1={`${path.from.y}%`}
-            x2={`${path.to.x}%`}
-            y2={`${path.to.y}%`}
-            stroke="hsl(var(--muted-foreground))"
-            strokeWidth="2"
-            strokeDasharray="5,5"
-            opacity="0.6"
-          />
-        </svg>
-      ))}
+          {/* Zones */}
+          {zones.map((zone) => (
+            <div
+              key={zone.id}
+              className={`absolute w-16 h-16 ${zone.color} rounded-full opacity-40 flex items-center justify-center backdrop-blur-sm`}
+              style={{ left: `${zone.x}%`, top: `${zone.y}%`, transform: "translate(-50%, -50%)" }}
+            >
+              <span className="text-xs font-bold text-white drop-shadow-lg">{zone.name}</span>
+            </div>
+          ))}
 
-      {/* Secret Paths */}
-      {effects.secretPath && secretPaths.map((path) => (
-        <motion.svg
-          key={path.id}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{ zIndex: 2 }}
-        >
-          <line
-            x1={`${path.from.x}%`}
-            y1={`${path.from.y}%`}
-            x2={`${path.to.x}%`}
-            y2={`${path.to.y}%`}
-            stroke="hsl(var(--bitcoin-gold))"
-            strokeWidth="3"
-            strokeDasharray="10,5"
-            opacity="0.8"
-          />
-        </motion.svg>
-      ))}
+          {/* Normal Paths */}
+          {paths.map((path) => (
+            <svg
+              key={path.id}
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ zIndex: 1 }}
+            >
+              <line
+                x1={`${path.from.x}%`}
+                y1={`${path.from.y}%`}
+                x2={`${path.to.x}%`}
+                y2={`${path.to.y}%`}
+                stroke="hsl(var(--muted-foreground))"
+                strokeWidth="3"
+                strokeDasharray="8,4"
+                opacity="0.8"
+                filter="drop-shadow(0 0 4px rgba(0,0,0,0.5))"
+              />
+            </svg>
+          ))}
 
-      {/* Blockades */}
-      {effects.blockades.map((blockade, index) => (
-        <motion.div
-          key={index}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute z-10 flex items-center justify-center"
-          style={{ 
-            left: `${blockade.x}%`, 
-            top: `${blockade.y}%`, 
-            transform: "translate(-50%, -50%)" 
-          }}
-        >
-          <div className="w-8 h-8 bg-hunter rounded-full flex items-center justify-center shadow-glow-hunter">
-            <AlertTriangle className="w-4 h-4 text-foreground" />
-          </div>
-        </motion.div>
-      ))}
+          {/* Secret Paths */}
+          {effects.secretPath && secretPaths.map((path) => (
+            <motion.svg
+              key={path.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{ zIndex: 2 }}
+            >
+              <line
+                x1={`${path.from.x}%`}
+                y1={`${path.from.y}%`}
+                x2={`${path.to.x}%`}
+                y2={`${path.to.y}%`}
+                stroke="hsl(var(--bitcoin-gold))"
+                strokeWidth="4"
+                strokeDasharray="12,6"
+                opacity="0.9"
+                filter="drop-shadow(0 0 8px hsl(var(--bitcoin-gold)))"
+              />
+            </motion.svg>
+          ))}
 
-      {/* Start Point */}
-      <div
-        className="absolute z-5 flex items-center justify-center"
-        style={{ left: "10%", top: "50%", transform: "translate(-50%, -50%)" }}
-      >
-        <div className="w-6 h-6 bg-gradient-bitcoin rounded-full flex items-center justify-center shadow-glow-bitcoin">
-          <MapPin className="w-3 h-3 text-primary-foreground" />
-        </div>
-        <span className="absolute -bottom-6 text-xs text-bitcoin font-bold">START</span>
-      </div>
+          {/* Blockades */}
+          {effects.blockades.map((blockade, index) => (
+            <motion.div
+              key={index}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute z-10 flex items-center justify-center"
+              style={{ 
+                left: `${blockade.x}%`, 
+                top: `${blockade.y}%`, 
+                transform: "translate(-50%, -50%)" 
+              }}
+            >
+              <div className="w-10 h-10 bg-hunter rounded-full flex items-center justify-center shadow-glow-hunter border-2 border-white/20">
+                <AlertTriangle className="w-5 h-5 text-white" />
+              </div>
+            </motion.div>
+          ))}
 
-      {/* End Point */}
-      <div
-        className="absolute z-5 flex items-center justify-center"
-        style={{ left: "90%", top: "50%", transform: "translate(-50%, -50%)" }}
-      >
-        <div className="w-6 h-6 bg-gradient-cyber rounded-full flex items-center justify-center shadow-glow-cyber">
-          <Target className="w-3 h-3 text-foreground" />
-        </div>
-        <span className="absolute -bottom-6 text-xs text-cyber font-bold">ZIEL</span>
-      </div>
-
-      {/* Murat Character */}
-      <motion.div
-        animate={{ 
-          left: `${muratPosition.x}%`, 
-          top: `${muratPosition.y}%` 
-        }}
-        transition={{ duration: 1, ease: "easeInOut" }}
-        className="absolute z-10 flex items-center justify-center"
-        style={{ transform: "translate(-50%, -50%)" }}
-      >
-        <div className={`w-8 h-8 bg-gradient-bitcoin rounded-full flex items-center justify-center shadow-glow-bitcoin ${effects.confusion ? 'animate-pulse' : ''}`}>
-          <Shield className="w-4 h-4 text-primary-foreground" />
-        </div>
-        <span className="absolute -bottom-6 text-xs text-bitcoin font-bold">MURAT</span>
-        {effects.confusion && (
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-3 -right-3"
+          {/* Start Point */}
+          <div
+            className="absolute z-5 flex items-center justify-center"
+            style={{ left: "10%", top: "50%", transform: "translate(-50%, -50%)" }}
           >
-            <Zap className="w-4 h-4 text-hunter" />
-          </motion.div>
-        )}
-      </motion.div>
+            <div className="w-8 h-8 bg-gradient-bitcoin rounded-full flex items-center justify-center shadow-glow-bitcoin border-2 border-white/20">
+              <MapPin className="w-4 h-4 text-white" />
+            </div>
+            <span className="absolute -bottom-8 text-xs text-bitcoin font-bold bg-black/50 px-2 py-1 rounded">START</span>
+          </div>
 
-      {/* Jäger Character */}
-      <motion.div
-        animate={{ 
-          left: `${jagerPosition.x}%`, 
-          top: `${jagerPosition.y}%` 
-        }}
-        transition={{ duration: 1, ease: "easeInOut" }}
-        className="absolute z-10 flex items-center justify-center"
-        style={{ transform: "translate(-50%, -50%)" }}
-      >
-        <div className="w-8 h-8 bg-gradient-hunter rounded-full flex items-center justify-center shadow-glow-hunter">
-          <Target className="w-4 h-4 text-foreground" />
+          {/* End Point */}
+          <div
+            className="absolute z-5 flex items-center justify-center"
+            style={{ left: "90%", top: "50%", transform: "translate(-50%, -50%)" }}
+          >
+            <div className="w-8 h-8 bg-gradient-cyber rounded-full flex items-center justify-center shadow-glow-cyber border-2 border-white/20">
+              <Target className="w-4 h-4 text-white" />
+            </div>
+            <span className="absolute -bottom-8 text-xs text-cyber font-bold bg-black/50 px-2 py-1 rounded">ZIEL</span>
+          </div>
+
+          {/* Murat Character */}
+          <motion.div
+            animate={{ 
+              left: `${muratPosition.x}%`, 
+              top: `${muratPosition.y}%` 
+            }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            className="absolute z-10 flex items-center justify-center"
+            style={{ transform: "translate(-50%, -50%)" }}
+          >
+            <div className={`w-10 h-10 bg-gradient-bitcoin rounded-full flex items-center justify-center shadow-glow-bitcoin border-2 border-white/30 ${effects.confusion ? 'animate-pulse' : ''}`}>
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+            <span className="absolute -bottom-8 text-xs text-bitcoin font-bold bg-black/70 px-2 py-1 rounded">MURAT</span>
+            {effects.confusion && (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="absolute -top-2 -right-2"
+              >
+                <Zap className="w-5 h-5 text-hunter drop-shadow-lg" />
+              </motion.div>
+            )}
+          </motion.div>
+
+          {/* Jäger Character */}
+          <motion.div
+            animate={{ 
+              left: `${jagerPosition.x}%`, 
+              top: `${jagerPosition.y}%` 
+            }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            className="absolute z-10 flex items-center justify-center"
+            style={{ transform: "translate(-50%, -50%)" }}
+          >
+            <div className="w-10 h-10 bg-gradient-hunter rounded-full flex items-center justify-center shadow-glow-hunter border-2 border-white/30">
+              <Target className="w-5 h-5 text-white" />
+            </div>
+            <span className="absolute -bottom-8 text-xs text-hunter font-bold bg-black/70 px-2 py-1 rounded">JÄGER</span>
+          </motion.div>
         </div>
-        <span className="absolute -bottom-6 text-xs text-hunter font-bold">JÄGER</span>
-      </motion.div>
+        
+        {/* Loading overlay when map is not initialized */}
+        {!mapInitialized && mapboxToken && (
+          <div className="absolute inset-0 bg-gradient-dark rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin w-8 h-8 border-2 border-bitcoin border-t-transparent rounded-full mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">Lade Bielefeld Karte...</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
