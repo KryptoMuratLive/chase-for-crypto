@@ -44,15 +44,15 @@ export const PlayerHand = ({
         )}
       </div>
       
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
         {cards.map((card) => (
           <div key={card.id} className="flex-shrink-0">
-            <Card className={`w-64 h-80 ${
+            <Card className={`w-56 h-72 ${
               card.team === "murat" 
                 ? "bg-gradient-bitcoin border-bitcoin/50" 
                 : "bg-gradient-hunter border-hunter/50"
             } transition-all duration-300 ${
-              (isActivePlayer && !playedCards.includes(card.id)) ? 'shadow-glow-bitcoin cursor-pointer hover:scale-105' : 'opacity-60'
+              (isActivePlayer && !playedCards.includes(card.id)) ? 'shadow-glow-bitcoin cursor-pointer hover:scale-105 hover:-translate-y-2' : 'opacity-60'
             }`}>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
@@ -74,16 +74,16 @@ export const PlayerHand = ({
               <CardContent className="space-y-3">
                 {card.stats && (
                   <div className="grid grid-cols-3 gap-1 text-center">
-                    <div className="bg-dark-surface p-1 rounded text-xs">
-                      <div className="text-muted-foreground">Skill</div>
+                    <div className="bg-dark-surface p-1.5 rounded text-xs">
+                      <div className="text-muted-foreground text-xs">Skill</div>
                       <div className="font-bold text-bitcoin">{card.stats.skill}</div>
                     </div>
-                    <div className="bg-dark-surface p-1 rounded text-xs">
-                      <div className="text-muted-foreground">Intel</div>
+                    <div className="bg-dark-surface p-1.5 rounded text-xs">
+                      <div className="text-muted-foreground text-xs">Intel</div>
                       <div className="font-bold text-cyber">{card.stats.intelligence}</div>
                     </div>
-                    <div className="bg-dark-surface p-1 rounded text-xs">
-                      <div className="text-muted-foreground">Stärke</div>
+                    <div className="bg-dark-surface p-1.5 rounded text-xs">
+                      <div className="text-muted-foreground text-xs">Stärke</div>
                       <div className="font-bold text-hunter">{card.stats.strength}</div>
                     </div>
                   </div>

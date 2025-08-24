@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { GameMap } from "./GameMap";
 import { PlayerHand } from "./PlayerHand";
 import { PlayableCard, GameCard } from "./PlayableCard";
@@ -191,6 +192,13 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   const [round, setRound] = useState(1);
   const [playedCards, setPlayedCards] = useState<string[]>([]);
   const [currentPlayedCard, setCurrentPlayedCard] = useState<GameCard | null>(null);
+  const [recentlyPlayedCards, setRecentlyPlayedCards] = useState<GameCard[]>([]);
+  
+  // Score system
+  const [scores, setScores] = useState({
+    murat: 0,
+    jager: 0
+  });
   
   // Game state
   const [muratPosition, setMuratPosition] = useState({ x: 10, y: 50 });
@@ -209,6 +217,10 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   const handlePlayCard = async (card: GameCard) => {
     setCurrentPlayedCard(card);
     setPlayedCards(prev => [...prev, card.id]);
+    setRecentlyPlayedCards(prev => [card, ...prev].slice(0, 3));
+    
+    // Update scores based on card effects
+    updateScore(card);
     
     // Apply card effects
     await applyCardEffect(card);
@@ -236,7 +248,24 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
     }
 
     // Clear current played card after animation
-    setTimeout(() => setCurrentPlayedCard(null), 3000);
+    setTimeout(() => setCurrentPlayedCard(null), 2000);
+  };
+  
+  const updateScore = (card: GameCard) => {
+    let points = 0;
+    
+    // Score based on rarity and type
+    if (card.rarity === "legendary") points = 30;
+    else if (card.rarity === "rare") points = 20;
+    else points = 10;
+    
+    // Bonus for character cards
+    if (card.type === "character") points += 10;
+    
+    setScores(prev => ({
+      ...prev,
+      [card.team]: prev[card.team] + points
+    }));
   };
 
   const applyCardEffect = async (card: GameCard) => {
@@ -361,6 +390,8 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
     setRound(1);
     setPlayedCards([]);
     setCurrentPlayedCard(null);
+    setRecentlyPlayedCards([]);
+    setScores({ murat: 0, jager: 0 });
     setMuratPosition({ x: 10, y: 50 });
     setJagerPosition({ x: 15, y: 70 });
     setGameEffects({
@@ -401,6 +432,105 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
                                     `${activePlayer === "both" ? "Beide Teams" : `Team ${activePlayer}`} am Zug`}
           </p>
         </div>
+
+        {/* Score Display and Recently Played Cards */}
+        {gamePhase !== "setup" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Score Display */}
+            <Card className="bg-gradient-dark border-cyber/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-center text-cyber text-lg">Punktestand</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-bitcoin/10 border border-bitcoin/30 rounded-lg">
+                    <div className="text-bitcoin font-bold text-2xl">{scores.murat}</div>
+                    <div className="text-xs text-muted-foreground">Team Murat</div>
+                  </div>
+                  <div className="text-center p-3 bg-hunter/10 border border-hunter/30 rounded-lg">
+                    <div className="text-hunter font-bold text-2xl">{scores.jager}</div>
+                    <div className="text-xs text-muted-foreground">Team Jäger</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recently Played Cards */}
+            <Card className="lg:col-span-2 bg-gradient-dark border-cyber/20">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-center text-cyber text-lg">Zuletzt gespielte Karten</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-3 overflow-x-auto">
+                  {recentlyPlayedCards.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8 w-full">
+                      Noch keine Karten gespielt
+                    </div>
+                  ) : (
+                    recentlyPlayedCards.map((card, index) => (
+                      <motion.div
+                        key={`${card.id}-${index}`}
+                        initial={{ scale: 1.2, opacity: 0, y: -50 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        transition={{ 
+                          duration: 0.5,
+                          delay: index * 0.1,
+                          ease: "easeOut"
+                        }}
+                        className="flex-shrink-0"
+                      >
+                        <Card className={`w-48 h-64 ${
+                          card.team === "murat" 
+                            ? "bg-gradient-bitcoin border-bitcoin/50" 
+                            : "bg-gradient-hunter border-hunter/50"
+                        } shadow-lg`}>
+                          <CardHeader className="pb-2">
+                            <div className="flex justify-between items-start">
+                              <h3 className="font-bold text-xs text-foreground">{card.name}</h3>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {card.type}
+                              </Badge>
+                            </div>
+                            <Badge 
+                              variant="secondary" 
+                              className={`w-fit text-xs ${
+                                card.team === "murat" ? "bg-bitcoin/20 text-bitcoin" : "bg-hunter/20 text-hunter"
+                              }`}
+                            >
+                              {card.team === "murat" ? "Murat" : "Jäger"}
+                            </Badge>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            {card.stats && (
+                              <div className="grid grid-cols-3 gap-1 text-center">
+                                <div className="bg-dark-surface p-1 rounded text-xs">
+                                  <div className="text-muted-foreground text-xs">Skill</div>
+                                  <div className="font-bold text-bitcoin text-sm">{card.stats.skill}</div>
+                                </div>
+                                <div className="bg-dark-surface p-1 rounded text-xs">
+                                  <div className="text-muted-foreground text-xs">Intel</div>
+                                  <div className="font-bold text-cyber text-sm">{card.stats.intelligence}</div>
+                                </div>
+                                <div className="bg-dark-surface p-1 rounded text-xs">
+                                  <div className="text-muted-foreground text-xs">Stärke</div>
+                                  <div className="font-bold text-hunter text-sm">{card.stats.strength}</div>
+                                </div>
+                              </div>
+                            )}
+                            <div className="bg-dark-surface p-2 rounded-lg">
+                              <h4 className="font-semibold text-primary text-xs mb-1">Fähigkeit</h4>
+                              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{card.ability}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Game Map */}
         <Card className="bg-gradient-dark border-bitcoin/20">
