@@ -6,7 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { GameMap } from "./GameMap";
 import { PlayerHand } from "./PlayerHand";
 import { PlayableCard, GameCard } from "./PlayableCard";
+import { ParticleEffects } from "./ParticleEffects";
+import { AchievementToast } from "./AchievementToast";
 import { Trophy, RotateCcw, ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type GamePhase = "setup" | "round1" | "round2" | "round3" | "finished";
 type ActivePlayer = "murat" | "jager" | "both";
@@ -193,6 +196,12 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   const [playedCards, setPlayedCards] = useState<string[]>([]);
   const [currentPlayedCard, setCurrentPlayedCard] = useState<GameCard | null>(null);
   const [recentlyPlayedCards, setRecentlyPlayedCards] = useState<GameCard[]>([]);
+  const [playedCardAnimation, setPlayedCardAnimation] = useState<{x: number, y: number} | null>(null);
+  
+  // Visual effects
+  const [particleEffect, setParticleEffect] = useState<{x: number, y: number, type: "explosion" | "success" | "sparkle"} | null>(null);
+  const [currentAchievement, setCurrentAchievement] = useState<any>(null);
+  const { toast } = useToast();
   
   // Score system
   const [scores, setScores] = useState({
@@ -219,11 +228,23 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
     setPlayedCards(prev => [...prev, card.id]);
     setRecentlyPlayedCards(prev => [card, ...prev].slice(0, 3));
     
+    // Animated card playing - card flies to map
+    setPlayedCardAnimation({ x: 50, y: 50 });
+    setTimeout(() => setPlayedCardAnimation(null), 1000);
+    
     // Update scores based on card effects
     updateScore(card);
     
-    // Apply card effects
+    // Check for achievements
+    checkAchievements(card);
+    
+    // Apply card effects with visual feedback
     await applyCardEffect(card);
+    
+    // Show success particle effect
+    if (card.team === "murat" && card.rarity === "legendary") {
+      setParticleEffect({ x: muratPosition.x * 4, y: muratPosition.y * 2, type: "success" });
+    }
     
     // Advance game logic
     if (gamePhase === "round1") {
@@ -262,10 +283,54 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
     // Bonus for character cards
     if (card.type === "character") points += 10;
     
+    const oldScore = scores[card.team];
+    const newScore = oldScore + points;
+    
     setScores(prev => ({
       ...prev,
-      [card.team]: prev[card.team] + points
+      [card.team]: newScore
     }));
+
+    // Visual feedback for score increase
+    toast({
+      title: `+${points} Punkte!`,
+      description: `Team ${card.team === "murat" ? "Murat" : "Jäger"} erhält ${points} Punkte für ${card.name}`,
+      duration: 2000,
+    });
+  };
+
+  const checkAchievements = (card: GameCard) => {
+    const achievements = [];
+    
+    // First legendary card
+    if (card.rarity === "legendary" && !playedCards.some(id => {
+      const playedCard = DEMO_CARDS.find(c => c.id === id);
+      return playedCard?.rarity === "legendary";
+    })) {
+      achievements.push({
+        id: "first-legendary",
+        title: "Legendärer Zug!",
+        description: "Erste legendäre Karte gespielt",
+        icon: "trophy",
+        rarity: "legendary"
+      });
+    }
+    
+    // High score milestone
+    if (scores[card.team] + (card.rarity === "legendary" ? 40 : card.rarity === "rare" ? 30 : 20) >= 100) {
+      achievements.push({
+        id: "high-score",
+        title: "Punktejäger",
+        description: "100 Punkte erreicht!",
+        icon: "star",
+        rarity: "rare"
+      });
+    }
+    
+    // Show achievement
+    if (achievements.length > 0) {
+      setCurrentAchievement(achievements[0]);
+    }
   };
 
   const applyCardEffect = async (card: GameCard) => {
@@ -337,6 +402,8 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
           ...prev, 
           blockades: [...prev.blockades, explosionSite] 
         }));
+        // Explosion particle effect
+        setParticleEffect({ x: muratPosition.x * 4, y: muratPosition.y * 2, type: "explosion" });
         break;
       case "biker-gang":
         // Straßenblockade - blockiert Zone für zwei Runden
@@ -630,6 +697,12 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
           </div>
         )}
       </div>
+      
+      {/* Achievement Toast */}
+      <AchievementToast 
+        achievement={currentAchievement} 
+        onComplete={() => setCurrentAchievement(null)} 
+      />
     </div>
   );
 };

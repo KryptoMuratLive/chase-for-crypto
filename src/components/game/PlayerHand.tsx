@@ -47,13 +47,29 @@ export const PlayerHand = ({
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
         {cards.map((card) => (
           <div key={card.id} className="flex-shrink-0">
-            <Card className={`w-56 h-72 ${
-              card.team === "murat" 
-                ? "bg-gradient-bitcoin border-bitcoin/50" 
-                : "bg-gradient-hunter border-hunter/50"
-            } transition-all duration-300 ${
-              (isActivePlayer && !playedCards.includes(card.id)) ? 'shadow-glow-bitcoin cursor-pointer hover:scale-105 hover:-translate-y-2' : 'opacity-60'
-            }`}>
+            <motion.div
+              whileHover={
+                (isActivePlayer && !playedCards.includes(card.id)) 
+                ? { 
+                    scale: 1.05, 
+                    y: -8,
+                    rotateY: 5,
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+                  } 
+                : {}
+              }
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            >
+              <Card className={`w-56 h-72 ${
+                card.team === "murat" 
+                  ? "bg-gradient-bitcoin border-bitcoin/50" 
+                  : "bg-gradient-hunter border-hunter/50"
+              } transition-all duration-300 ${
+                (isActivePlayer && !playedCards.includes(card.id)) 
+                  ? 'shadow-glow-bitcoin cursor-pointer' 
+                  : 'opacity-60'
+              } relative overflow-hidden`}>
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <h3 className="font-bold text-sm text-foreground">{card.name}</h3>
@@ -97,17 +113,39 @@ export const PlayerHand = ({
                 <p className="text-xs text-muted-foreground leading-relaxed">{card.description}</p>
 
                 {(isActivePlayer && !playedCards.includes(card.id)) && (
-                  <Button 
-                    onClick={() => onPlayCard(card)}
-                    variant={card.team === "murat" ? "teamMurat" : "teamJager"}
-                    size="sm" 
-                    className="w-full text-xs"
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    Karte spielen
-                  </Button>
+                    <Button 
+                      onClick={() => onPlayCard(card)}
+                      variant={card.team === "murat" ? "teamMurat" : "teamJager"}
+                      size="sm" 
+                      className="w-full text-xs relative overflow-hidden"
+                    >
+                      <motion.div
+                        initial={{ x: "-100%" }}
+                        whileHover={{ x: "100%" }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute inset-0 bg-white/20"
+                      />
+                      <span className="relative z-10">Karte spielen</span>
+                    </Button>
+                  </motion.div>
+                )}
+                
+                {/* Card shine effect */}
+                {(isActivePlayer && !playedCards.includes(card.id)) && (
+                  <motion.div
+                    initial={{ x: "-100%", opacity: 0 }}
+                    animate={{ x: "100%", opacity: [0, 1, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                  />
                 )}
               </CardContent>
             </Card>
+            </motion.div>
           </div>
         ))}
       </div>
