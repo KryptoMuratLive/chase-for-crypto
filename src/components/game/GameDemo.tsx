@@ -8,11 +8,41 @@ import { PlayerHand } from "./PlayerHand";
 import { PlayableCard, GameCard } from "./PlayableCard";
 import { ParticleEffects } from "./ParticleEffects";
 import { AchievementToast } from "./AchievementToast";
+import { ResourceManager } from "./ResourceManager";
+import { ComboSystem } from "./ComboSystem";
+import { GamePhaseManager } from "./GamePhaseManager";
 import { Trophy, RotateCcw, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-type GamePhase = "setup" | "round1" | "round2" | "round3" | "finished";
+type GamePhase = "preparation" | "action" | "resolution" | "endgame" | "finished";
 type ActivePlayer = "murat" | "jager" | "both";
+
+interface Resources {
+  energy: number;
+  maxEnergy: number;
+  influence: number;
+  maxInfluence: number;
+  tech: number;
+  maxTech: number;
+}
+
+interface Buff {
+  id: string;
+  name: string;
+  type: "buff" | "debuff";
+  duration: number;
+  effect: string;
+  target: "murat" | "jager" | "both";
+}
+
+interface ComboDefinition {
+  id: string;
+  name: string;
+  requiredCards: string[];
+  effect: string;
+  multiplier: number;
+  rarity: "common" | "rare" | "legendary";
+}
 
 const DEMO_CARDS: GameCard[] = [
   // Team Murat - Charakter-NFT-Karten
@@ -190,13 +220,31 @@ interface GameDemoProps {
 }
 
 export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
-  const [gamePhase, setGamePhase] = useState<GamePhase>("setup");
+  const [gamePhase, setGamePhase] = useState<GamePhase>("preparation");
   const [activePlayer, setActivePlayer] = useState<ActivePlayer>("murat");
   const [round, setRound] = useState(1);
   const [playedCards, setPlayedCards] = useState<string[]>([]);
   const [currentPlayedCard, setCurrentPlayedCard] = useState<GameCard | null>(null);
   const [recentlyPlayedCards, setRecentlyPlayedCards] = useState<GameCard[]>([]);
   const [playedCardAnimation, setPlayedCardAnimation] = useState<{x: number, y: number} | null>(null);
+  
+  // Enhanced Game State
+  const [phaseTimer, setPhaseTimer] = useState(30);
+  const [maxPhaseTime] = useState(30);
+  const [detectedCombos, setDetectedCombos] = useState<any[]>([]);
+  const [activeBuffs, setActiveBuffs] = useState<Buff[]>([]);
+  
+  // Resource System
+  const [muratResources, setMuratResources] = useState<Resources>({
+    energy: 5, maxEnergy: 5,
+    influence: 3, maxInfluence: 5,
+    tech: 2, maxTech: 5
+  });
+  const [jagerResources, setJagerResources] = useState<Resources>({
+    energy: 4, maxEnergy: 5,
+    influence: 4, maxInfluence: 5,
+    tech: 3, maxTech: 5
+  });
   
   // Visual effects
   const [particleEffect, setParticleEffect] = useState<{x: number, y: number, type: "explosion" | "success" | "sparkle"} | null>(null);
@@ -223,7 +271,217 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   const muratCards = DEMO_CARDS.filter(card => card.team === "murat");
   const jagerCards = DEMO_CARDS.filter(card => card.team === "jager");
 
+  // Enhanced Combo System
+  const COMBO_DEFINITIONS: ComboDefinition[] = [
+    {
+      id: "stealth-master",
+      name: "Stealth Master",
+      requiredCards: ["murat-main", "hacker", "hide"],
+      effect: "Murat wird für 2 Runden völlig unsichtbar und kann durch Blockaden gehen",
+      multiplier: 3.0,
+      rarity: "legendary"
+    },
+    {
+      id: "digital-warfare",
+      name: "Digitaler Krieg",
+      requiredCards: ["hacker", "crowdsourcing"],
+      effect: "Alle Team Jäger Scan-Effekte werden für 3 Runden blockiert",
+      multiplier: 2.5,
+      rarity: "rare"
+    },
+    {
+      id: "community-power",
+      name: "Community Power",
+      requiredCards: ["crowdsourcing", "live-donation"],
+      effect: "Öffnet 2 geheime Pfade und gewährt +50 Bonus-Punkte",
+      multiplier: 2.0,
+      rarity: "rare"
+    },
+    {
+      id: "hunter-supremacy",
+      name: "Jäger Suprematie",
+      requiredCards: ["hunter-main", "drone-pilot", "saboteur"],
+      effect: "Komplette Kartenüberwachung + 3 Fallen gleichzeitig",
+      multiplier: 3.5,
+      rarity: "legendary"
+    }
+  ];
+
+  // Phase Timer Effect
+  useEffect(() => {
+    if (gamePhase === "finished") return;
+    
+    const timer = setInterval(() => {
+      setPhaseTimer(prev => {
+        if (prev <= 1) {
+          advancePhase();
+          return maxPhaseTime;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [gamePhase]);
+
+  // Check for combos when cards are played
+  useEffect(() => {
+    checkForCombos();
+  }, [playedCards]);
+
+  // Update buffs duration
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveBuffs(prev => prev
+        .map(buff => ({ ...buff, duration: buff.duration - 1 }))
+        .filter(buff => buff.duration > 0)
+      );
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const advancePhase = () => {
+    switch (gamePhase) {
+      case "preparation":
+        setGamePhase("action");
+        // Restore resources at start of action phase
+        restoreResources();
+        break;
+      case "action":
+        setGamePhase("resolution");
+        break;
+      case "resolution":
+        if (round >= 5) {
+          setGamePhase("endgame");
+        } else {
+          setGamePhase("preparation");
+          setRound(prev => prev + 1);
+          setActivePlayer(activePlayer === "murat" ? "jager" : "murat");
+        }
+        break;
+      case "endgame":
+        determineWinner();
+        break;
+    }
+  };
+
+  const restoreResources = () => {
+    setMuratResources(prev => ({
+      ...prev,
+      energy: Math.min(prev.energy + 2, prev.maxEnergy),
+      influence: Math.min(prev.influence + 1, prev.maxInfluence),
+      tech: Math.min(prev.tech + 1, prev.maxTech)
+    }));
+    
+    setJagerResources(prev => ({
+      ...prev,
+      energy: Math.min(prev.energy + 2, prev.maxEnergy),
+      influence: Math.min(prev.influence + 1, prev.maxInfluence),
+      tech: Math.min(prev.tech + 1, prev.maxTech)
+    }));
+  };
+
+  const checkForCombos = () => {
+    const availableCombos = COMBO_DEFINITIONS.filter(combo => {
+      return combo.requiredCards.every(cardId => playedCards.includes(cardId));
+    });
+
+    const newCombos = availableCombos.filter(combo => 
+      !detectedCombos.some(detected => detected.id === combo.id)
+    );
+
+    if (newCombos.length > 0) {
+      setDetectedCombos(prev => [...prev, ...newCombos.map(combo => ({
+        ...combo,
+        cards: combo.requiredCards.map(cardId => 
+          DEMO_CARDS.find(card => card.id === cardId)!
+        )
+      }))]);
+    }
+  };
+
+  const activateCombo = (comboId: string) => {
+    const combo = detectedCombos.find(c => c.id === comboId);
+    if (!combo) return;
+
+    // Apply combo effects
+    applyComboEffect(combo);
+    
+    // Remove combo from available list
+    setDetectedCombos(prev => prev.filter(c => c.id !== comboId));
+    
+    // Add achievement for combo
+    setCurrentAchievement({
+      id: `combo-${comboId}`,
+      title: `${combo.name} Combo!`,
+      description: `${combo.multiplier}x Multiplikator aktiviert`,
+      icon: "sparkles",
+      rarity: combo.rarity
+    });
+  };
+
+  const applyComboEffect = (combo: any) => {
+    const team = combo.cards[0]?.team || "murat";
+    
+    // Apply score multiplier
+    setScores(prev => ({
+      ...prev,
+      [team]: prev[team] * combo.multiplier
+    }));
+
+    // Apply specific combo effects
+    switch (combo.id) {
+      case "stealth-master":
+        setActiveBuffs(prev => [...prev, {
+          id: "stealth",
+          name: "Stealth Master",
+          type: "buff",
+          duration: 6, // 2 rounds = 6 phases
+          effect: "Unsichtbarkeit + Blockaden ignorieren",
+          target: "murat"
+        }]);
+        break;
+      case "digital-warfare":
+        setActiveBuffs(prev => [...prev, {
+          id: "scan-block",
+          name: "Scan Blocker",
+          type: "debuff",
+          duration: 9, // 3 rounds
+          effect: "Scan-Effekte blockiert",
+          target: "jager"
+        }]);
+        break;
+      case "hunter-supremacy":
+        setActiveBuffs(prev => [...prev, {
+          id: "supremacy",
+          name: "Jäger Suprematie",
+          type: "buff",
+          duration: 6,
+          effect: "Komplette Überwachung + 3 Fallen",
+          target: "jager"
+        }]);
+        break;
+    }
+  };
+
   const handlePlayCard = async (card: GameCard) => {
+    // Check if player has enough resources
+    const currentResources = card.team === "murat" ? muratResources : jagerResources;
+    const resourceCost = calculateResourceCost(card);
+    
+    if (!canAffordCard(card, currentResources)) {
+      toast({
+        title: "Nicht genug Ressourcen!",
+        description: `Diese Karte kostet ${resourceCost.energy} Energie, ${resourceCost.influence} Einfluss, ${resourceCost.tech} Tech`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Consume resources
+    consumeResources(card);
+    
     setCurrentPlayedCard(card);
     setPlayedCards(prev => [...prev, card.id]);
     setRecentlyPlayedCards(prev => [card, ...prev].slice(0, 3));
@@ -245,31 +503,52 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
     if (card.team === "murat" && card.rarity === "legendary") {
       setParticleEffect({ x: muratPosition.x * 4, y: muratPosition.y * 2, type: "success" });
     }
-    
-    // Advance game logic
-    if (gamePhase === "round1") {
-      if (activePlayer === "murat") {
-        setActivePlayer("jager");
-      } else {
-        setGamePhase("round2");
-        setActivePlayer("jager");
-        setRound(2);
-      }
-    } else if (gamePhase === "round2") {
-      if (activePlayer === "jager") {
-        setActivePlayer("murat");
-      } else {
-        setGamePhase("round3");
-        setActivePlayer("both");
-        setRound(3);
-      }
-    } else if (gamePhase === "round3") {
-      // Game ends after round 3
-      setTimeout(() => determineWinner(), 2000);
-    }
 
     // Clear current played card after animation
     setTimeout(() => setCurrentPlayedCard(null), 2000);
+  };
+
+  const calculateResourceCost = (card: GameCard) => {
+    const baseCost = { energy: 1, influence: 0, tech: 0 };
+    
+    if (card.rarity === "legendary") {
+      return { energy: 3, influence: 2, tech: 1 };
+    } else if (card.rarity === "rare") {
+      return { energy: 2, influence: 1, tech: 1 };
+    } else if (card.type === "character") {
+      return { energy: 2, influence: 1, tech: 0 };
+    } else if (card.type === "community") {
+      return { energy: 1, influence: 2, tech: 1 };
+    }
+    
+    return baseCost;
+  };
+
+  const canAffordCard = (card: GameCard, resources: Resources) => {
+    const cost = calculateResourceCost(card);
+    return resources.energy >= cost.energy && 
+           resources.influence >= cost.influence &&
+           resources.tech >= cost.tech;
+  };
+
+  const consumeResources = (card: GameCard) => {
+    const cost = calculateResourceCost(card);
+    
+    if (card.team === "murat") {
+      setMuratResources(prev => ({
+        ...prev,
+        energy: prev.energy - cost.energy,
+        influence: prev.influence - cost.influence,
+        tech: prev.tech - cost.tech
+      }));
+    } else {
+      setJagerResources(prev => ({
+        ...prev,
+        energy: prev.energy - cost.energy,
+        influence: prev.influence - cost.influence,
+        tech: prev.tech - cost.tech
+      }));
+    }
   };
   
   const updateScore = (card: GameCard) => {
@@ -452,11 +731,26 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   };
 
   const resetGame = () => {
-    setGamePhase("setup");
+    setGamePhase("preparation");
     setActivePlayer("murat");
     setRound(1);
     setPlayedCards([]);
     setCurrentPlayedCard(null);
+    setDetectedCombos([]);
+    setActiveBuffs([]);
+    setPhaseTimer(maxPhaseTime);
+    
+    // Reset resources
+    setMuratResources({
+      energy: 5, maxEnergy: 5,
+      influence: 3, maxInfluence: 5,
+      tech: 2, maxTech: 5
+    });
+    setJagerResources({
+      energy: 4, maxEnergy: 5,
+      influence: 4, maxInfluence: 5,
+      tech: 3, maxTech: 5
+    });
     setRecentlyPlayedCards([]);
     setScores({ murat: 0, jager: 0 });
     setMuratPosition({ x: 10, y: 50 });
@@ -471,7 +765,7 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   };
 
   const startGame = () => {
-    setGamePhase("round1");
+    setGamePhase("action");
   };
 
   return (
@@ -494,14 +788,14 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
             Jagd auf den Bitcoin - Demo
           </h1>
           <p className="text-muted-foreground">
-            Runde {round} von 3 • {gamePhase === "setup" ? "Bereit zum Start" : 
-                                    gamePhase === "finished" ? "Spiel beendet" : 
-                                    `${activePlayer === "both" ? "Beide Teams" : `Team ${activePlayer}`} am Zug`}
+            Runde {round} von 5 • {gamePhase === "preparation" ? "Bereit zum Start" : 
+                                     gamePhase === "finished" ? "Spiel beendet" : 
+                                     `${activePlayer === "both" ? "Beide Teams" : `Team ${activePlayer}`} am Zug`}
           </p>
         </div>
 
         {/* Score Display and Recently Played Cards */}
-        {gamePhase !== "setup" && (
+        {gamePhase !== "preparation" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Score Display */}
             <Card className="bg-gradient-dark border-cyber/20">
@@ -636,7 +930,7 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
         </AnimatePresence>
 
         {/* Setup Phase */}
-        {gamePhase === "setup" && (
+        {gamePhase === "preparation" && (
           <Card className="bg-gradient-dark border-cyber/20">
             <CardContent className="text-center p-8">
               <h2 className="text-2xl font-bold mb-4 text-cyber">Bereit für die Demo?</h2>
@@ -678,7 +972,7 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
         )}
 
         {/* Player Hands */}
-        {(gamePhase === "round1" || gamePhase === "round2" || gamePhase === "round3") && (
+        {(gamePhase === "action" || gamePhase === "resolution") && (
           <div className="space-y-4">
             <PlayerHand
               cards={muratCards}
