@@ -118,7 +118,8 @@ export const PlayerHand = ({
                 
                 <p className="text-xs text-muted-foreground leading-relaxed">{card.description}</p>
 
-                {(isActivePlayer && !playedCards.includes(card.id)) && (
+                {/* Show button for all cards */}
+                {(
                   <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -131,6 +132,7 @@ export const PlayerHand = ({
                       variant={card.team === "murat" ? "teamMurat" : "teamJager"}
                       size="sm" 
                       className="w-full text-xs relative overflow-hidden cursor-pointer"
+                      disabled={playedCards.includes(card.id)}
                     >
                       <motion.div
                         initial={{ x: "-100%" }}
@@ -138,7 +140,9 @@ export const PlayerHand = ({
                         transition={{ duration: 0.3 }}
                         className="absolute inset-0 bg-white/20"
                       />
-                      <span className="relative z-10">Karte spielen ✨</span>
+                      <span className="relative z-10">
+                        {playedCards.includes(card.id) ? "Gespielt ✓" : "Karte spielen ✨"}
+                      </span>
                     </Button>
                   </motion.div>
                 )}
