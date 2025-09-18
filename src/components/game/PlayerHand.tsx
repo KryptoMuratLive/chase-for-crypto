@@ -47,27 +47,33 @@ export const PlayerHand = ({
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-background">
         {cards.map((card) => (
           <div key={card.id} className="flex-shrink-0">
-            <motion.div
-              whileHover={
-                (isActivePlayer && !playedCards.includes(card.id)) 
-                ? { 
-                    scale: 1.05, 
-                    y: -8,
-                    rotateY: 5,
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
-                  } 
-                : {}
-              }
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            >
+              <motion.div
+                whileHover={
+                  (isActivePlayer && !playedCards.includes(card.id)) 
+                  ? { 
+                      scale: 1.05, 
+                      y: -8,
+                      rotateY: 5,
+                      boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+                    } 
+                  : {}
+                }
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                className="cursor-pointer"
+                onClick={() => {
+                  if (isActivePlayer && !playedCards.includes(card.id)) {
+                    onPlayCard(card);
+                  }
+                }}
+              >
               <Card className={`w-56 h-72 ${
                 card.team === "murat" 
                   ? "bg-gradient-bitcoin border-bitcoin/50" 
                   : "bg-gradient-hunter border-hunter/50"
               } transition-all duration-300 ${
                 (isActivePlayer && !playedCards.includes(card.id)) 
-                  ? 'shadow-glow-bitcoin cursor-pointer' 
+                  ? 'shadow-glow-bitcoin cursor-pointer hover:shadow-2xl' 
                   : 'opacity-60'
               } relative overflow-hidden`}>
               <CardHeader className="pb-3">
@@ -118,10 +124,13 @@ export const PlayerHand = ({
                     whileTap={{ scale: 0.98 }}
                   >
                     <Button 
-                      onClick={() => onPlayCard(card)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onPlayCard(card);
+                      }}
                       variant={card.team === "murat" ? "teamMurat" : "teamJager"}
                       size="sm" 
-                      className="w-full text-xs relative overflow-hidden"
+                      className="w-full text-xs relative overflow-hidden cursor-pointer"
                     >
                       <motion.div
                         initial={{ x: "-100%" }}
@@ -129,7 +138,7 @@ export const PlayerHand = ({
                         transition={{ duration: 0.3 }}
                         className="absolute inset-0 bg-white/20"
                       />
-                      <span className="relative z-10">Karte spielen</span>
+                      <span className="relative z-10">Karte spielen ✨</span>
                     </Button>
                   </motion.div>
                 )}
