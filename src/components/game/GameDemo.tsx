@@ -234,16 +234,16 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   const [detectedCombos, setDetectedCombos] = useState<any[]>([]);
   const [activeBuffs, setActiveBuffs] = useState<Buff[]>([]);
   
-  // Resource System
+  // Resource System - Start with high resources for demo
   const [muratResources, setMuratResources] = useState<Resources>({
-    energy: 5, maxEnergy: 5,
-    influence: 3, maxInfluence: 5,
-    tech: 2, maxTech: 5
+    energy: 10, maxEnergy: 10,
+    influence: 8, maxInfluence: 10,
+    tech: 8, maxTech: 10
   });
   const [jagerResources, setJagerResources] = useState<Resources>({
-    energy: 4, maxEnergy: 5,
-    influence: 4, maxInfluence: 5,
-    tech: 3, maxTech: 5
+    energy: 10, maxEnergy: 10,
+    influence: 8, maxInfluence: 10,
+    tech: 8, maxTech: 10
   });
   
   // Visual effects
@@ -466,21 +466,39 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
   };
 
   const handlePlayCard = async (card: GameCard) => {
-    // Check if player has enough resources
-    const currentResources = card.team === "murat" ? muratResources : jagerResources;
-    const resourceCost = calculateResourceCost(card);
-    
-    if (!canAffordCard(card, currentResources)) {
+    // Check if card was already played
+    if (playedCards.includes(card.id)) {
       toast({
-        title: "Nicht genug Ressourcen!",
-        description: `Diese Karte kostet ${resourceCost.energy} Energie, ${resourceCost.influence} Einfluss, ${resourceCost.tech} Tech`,
+        title: "Karte bereits gespielt!",
+        description: "Diese Karte wurde bereits in dieser Runde gespielt.",
         variant: "destructive",
       });
       return;
     }
 
-    // Consume resources
-    consumeResources(card);
+    // Simplified resource check - always allow card play if player has at least 1 energy
+    const currentResources = card.team === "murat" ? muratResources : jagerResources;
+    if (currentResources.energy < 1) {
+      toast({
+        title: "Keine Energie!",
+        description: "Du benötigst mindestens 1 Energie um eine Karte zu spielen.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Consume only 1 energy per card (simplified)
+    if (card.team === "murat") {
+      setMuratResources(prev => ({
+        ...prev,
+        energy: Math.max(0, prev.energy - 1)
+      }));
+    } else {
+      setJagerResources(prev => ({
+        ...prev,
+        energy: Math.max(0, prev.energy - 1)
+      }));
+    }
     
     setCurrentPlayedCard(card);
     setPlayedCards(prev => [...prev, card.id]);
@@ -977,14 +995,14 @@ export const GameDemo = ({ onBackToHome }: GameDemoProps = {}) => {
             <PlayerHand
               cards={muratCards}
               team="murat"
-              isActivePlayer={activePlayer === "murat" || activePlayer === "both"}
+              isActivePlayer={true}
               onPlayCard={handlePlayCard}
               playedCards={playedCards}
             />
             <PlayerHand
               cards={jagerCards}
               team="jager"
-              isActivePlayer={activePlayer === "jager" || activePlayer === "both"}
+              isActivePlayer={true}
               onPlayCard={handlePlayCard}
               playedCards={playedCards}
             />
