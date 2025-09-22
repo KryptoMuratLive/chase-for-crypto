@@ -62,7 +62,9 @@ export const PlayerHand = ({
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
                 className="cursor-pointer"
                 onClick={() => {
+                  console.log("Karte geklickt:", card.name, "isActivePlayer:", isActivePlayer, "bereits gespielt:", playedCards.includes(card.id));
                   if (isActivePlayer && !playedCards.includes(card.id)) {
+                    console.log("Karte wird gespielt:", card.name);
                     onPlayCard(card);
                   }
                 }}
@@ -127,7 +129,11 @@ export const PlayerHand = ({
                     <Button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        onPlayCard(card);
+                        console.log("Button geklickt für Karte:", card.name, "disabled:", playedCards.includes(card.id));
+                        if (!playedCards.includes(card.id)) {
+                          console.log("Karte wird über Button gespielt:", card.name);
+                          onPlayCard(card);
+                        }
                       }}
                       variant={card.team === "murat" ? "teamMurat" : "teamJager"}
                       size="sm" 
